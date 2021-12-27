@@ -17,21 +17,3 @@ tqdm>=4.41.0
 
 pandas>=1.1.4
 seaborn>=0.11.0
-
-# deep_sort -----------------------------------
-
-easydict
-
-# torchreid
-
-Cython
-h5py
-six
-tb-nightly
-future
-yacs
-gdown
-flake8
-yapf
-isort==4.3.21
-imageio
