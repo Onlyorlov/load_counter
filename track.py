@@ -36,9 +36,9 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 
 def detect(opt):
-    out, source, yolo_model, show_vid, save_vid, imgsz, evaluate, half, project, name, exist_ok= \
+    out, source, yolo_model, show_vid, save_vid, imgsz, evaluate, half, project, name, exist_ok, mask= \
         opt.output, opt.source, opt.yolo_model, opt.show_vid, opt.save_vid, \
-        opt.imgsz, opt.evaluate, opt.half, opt.project, opt.name, opt.exist_ok
+        opt.imgsz, opt.evaluate, opt.half, opt.project, opt.name, opt.exist_ok, opt.mask
     webcam = source == '0' or source.startswith(
         'rtsp') or source.startswith('http') or source.endswith('.txt')
 
@@ -133,20 +133,23 @@ def detect(opt):
                     n = (det[:, -1] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
-                # xywhs = xyxy2xywh(det[:, 0:4])
-                xywhs = det[:, 0:4]
+                xyxy = det[:, 0:4]
                 confs = det[:, 4]
                 clss = det[:, 5]
 
+                inplace_counter = 0
                 # draw boxes for visualization
                 if len(det) > 0:
-                    for j, (bboxes, cls, conf) in enumerate(zip(xywhs.cpu(), clss.cpu(), confs.cpu())):
+                    for j, (bboxes, cls, conf) in enumerate(zip(xyxy.cpu(), clss.cpu(), confs.cpu())):
 
                         c = int(cls)  # integer class
                         label = f'{names[c]} {conf:.2f}'
                         annotator.box_label(bboxes, label, color=colors(c, True))
 
-                # check for boxes in range and annotate
+                        # check for boxes in given range
+                        if mask:
+                            pass
+
 
             # Print time (inference-only)
             LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
@@ -208,9 +211,10 @@ if __name__ == '__main__':
     parser.add_argument('--visualize', action='store_true', help='visualize features')
     parser.add_argument('--max-det', type=int, default=1000, help='maximum detection per image')
     parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
-    parser.add_argument('--project', default=ROOT / 'runs/track', help='save results to project/name')
+    parser.add_argument('--project', default=ROOT / 'runs', help='save results to project/name')
     parser.add_argument('--name', default='exp', help='save results to project/name')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
+    parser.add_argument('--mask', default=None, help='mask for region of interest')
     opt = parser.parse_args()
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
 
