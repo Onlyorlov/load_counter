@@ -134,15 +134,19 @@ def detect(opt):
                 inplace_counter = 0
                 # draw boxes for visualization
                 if len(det) > 0:
-                    for j, (bboxes, cls, conf) in enumerate(zip(xyxy.cpu(), clss.cpu(), confs.cpu())):
+                    for j, (bbox, cls, conf) in enumerate(zip(xyxy.cpu(), clss.cpu(), confs.cpu())):
 
                         c = int(cls)  # integer class
                         label = f'{names[c]} {conf:.2f}'
-                        annotator.box_label(bboxes, label, color=colors(c, True))
+                        annotator.box_label(bbox, label, color=colors(c, True))
 
                         # check for boxes in given range
                         if mask:
+                            # if bbox in region:
+                            #     inplace_counter+=1
                             pass
+                    # if mask:
+                    annotator.text([0,0], f'{s}Число людей в зоне:({inplace_counter}s)')
 
 
             # Print time (inference-only)
@@ -205,7 +209,7 @@ if __name__ == '__main__':
     parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
     parser.add_argument('--project', default=ROOT / 'runs', help='save results to project/name')
     parser.add_argument('--name', default='exp', help='save results to project/name')
-    parser.add_argument('--mask', default=None, help='mask for region of interest')
+    parser.add_argument('--mask', default=None, help='path to mask for region of interest')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     opt = parser.parse_args()
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
