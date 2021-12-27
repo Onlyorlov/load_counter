@@ -115,7 +115,7 @@ def detect(opt):
             save_path = str(save_dir / p.name)  # im.jpg, vid.mp4, ...
             s += '%gx%g ' % img.shape[2:]  # print string
 
-            annotator = Annotator(im0, line_width=2, pil=True)
+            annotator = Annotator(im0, line_width=2, pil=not ascii)
 
             if det is not None and len(det):
                 # Rescale boxes from img_size to im0 size
