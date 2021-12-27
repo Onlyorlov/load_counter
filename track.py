@@ -140,11 +140,11 @@ def detect(opt):
                         label = f'{names[c]} {conf:.2f}'
                         annotator.box_label(bbox, label, color=colors(c, True))
 
-                        # check for boxes in given range
-                        if mask:
-                            # if bbox in region:
-                            #     inplace_counter+=1
-                            pass
+                        # # check for boxes in given range
+                        # if mask:
+                        #     # if bbox in region:
+                        #     #     inplace_counter+=1
+                        #     pass
                     # if mask:
                     annotator.text([0,0], f'Число людей в зоне:{inplace_counter}')
 
