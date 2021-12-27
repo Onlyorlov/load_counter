@@ -36,15 +36,14 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 
 def detect(opt):
-    out, source, yolo_model, show_vid, save_vid, imgsz, evaluate, half, project, name, exist_ok, mask= \
+    out, source, yolo_model, show_vid, save_vid, imgsz, project, name, mask, exist_ok= \
         opt.output, opt.source, opt.yolo_model, opt.show_vid, opt.save_vid, \
-        opt.imgsz, opt.evaluate, opt.half, opt.project, opt.name, opt.exist_ok, opt.mask
+        opt.imgsz, opt.project, opt.name, opt.mask, opt.exist_ok
     webcam = source == '0' or source.startswith(
         'rtsp') or source.startswith('http') or source.endswith('.txt')
 
     # Initialize
     device = select_device(opt.device)
-    half &= device.type != 'cpu'  # half precision only supported on CUDA
 
     # Directories
     save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
@@ -55,11 +54,6 @@ def detect(opt):
     model = DetectMultiBackend(yolo_model, device=device, dnn=opt.dnn)
     stride, names, pt, jit, _ = model.stride, model.names, model.pt, model.jit, model.onnx
     imgsz = check_img_size(imgsz, s=stride)  # check image size
-
-    # Half
-    half &= pt and device.type != 'cpu'  # half precision only supported by PyTorch on CUDA
-    if pt:
-        model.model.half() if half else model.model.float()
 
     # Set Dataloader
     vid_path, vid_writer = None, None
@@ -91,7 +85,7 @@ def detect(opt):
     for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
         t1 = time_sync()
         img = torch.from_numpy(img).to(device)
-        img = img.half() if half else img.float()  # uint8 to fp16/32
+        img = img.float()
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
         if img.ndimension() == 3:
             img = img.unsqueeze(0)
@@ -206,15 +200,13 @@ if __name__ == '__main__':
     parser.add_argument('--agnostic-nms', action='store_true', help='class-agnostic NMS')
     parser.add_argument('--augment', action='store_true', help='augmented inference')
     parser.add_argument('--evaluate', action='store_true', help='augmented inference')
-    parser.add_argument("--config_deepsort", type=str, default="deep_sort/configs/deep_sort.yaml")
-    parser.add_argument("--half", action="store_true", help="use FP16 half-precision inference")
     parser.add_argument('--visualize', action='store_true', help='visualize features')
     parser.add_argument('--max-det', type=int, default=1000, help='maximum detection per image')
     parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
     parser.add_argument('--project', default=ROOT / 'runs', help='save results to project/name')
     parser.add_argument('--name', default='exp', help='save results to project/name')
-    parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--mask', default=None, help='mask for region of interest')
+    parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     opt = parser.parse_args()
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
 
