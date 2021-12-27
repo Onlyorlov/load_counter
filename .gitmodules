@@ -5,3 +5,6 @@
 [submodule "deep_sort/deep/reid"]
 	path = deep_sort/deep/reid
 	url = https://github.com/KaiyangZhou/deep-person-reid
+[submodule "Submod"]
+	url = https://github.com/Onlyorlov/yolov5.git
+	branch = master
