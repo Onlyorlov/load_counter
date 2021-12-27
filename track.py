@@ -87,7 +87,7 @@ def detect(opt):
 
     if pt and device.type != 'cpu':
         model(torch.zeros(1, 3, *imgsz).to(device).type_as(next(model.model.parameters())))  # warmup
-    dt, seen = [0.0, 0.0, 0.0, 0.0], 0
+    dt, seen = [0.0, 0.0, 0.0], 0
     for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
         t1 = time_sync()
         img = torch.from_numpy(img).to(device)
@@ -133,7 +133,8 @@ def detect(opt):
                     n = (det[:, -1] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
-                xywhs = xyxy2xywh(det[:, 0:4])
+                # xywhs = xyxy2xywh(det[:, 0:4])
+                xywhs = det[:, 0:4]
                 confs = det[:, 4]
                 clss = det[:, 5]
 
@@ -177,8 +178,8 @@ def detect(opt):
     # Print results
     t = tuple(x / seen * 1E3 for x in dt)  # speeds per image
     print(t, *imgsz)
-    # LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS \
-    #     per image at shape {(1, 3, *imgsz)}' % t)
+    LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS \
+        per image at shape {(1, 3, *imgsz)}' % t)
     if save_vid:
         print('Results saved to %s' % os.getcwd() + os.sep + out)
         if platform == 'darwin':  # MacOS
