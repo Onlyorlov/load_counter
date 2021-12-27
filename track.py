@@ -36,8 +36,8 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 
 def detect(opt):
-    out, source, yolo_model, deep_sort_model, show_vid, save_vid, save_txt, imgsz, evaluate, half, project, name, exist_ok= \
-        opt.output, opt.source, opt.yolo_model, opt.deep_sort_model, opt.show_vid, opt.save_vid, \
+    out, source, yolo_model, show_vid, save_vid, save_txt, imgsz, evaluate, half, project, name, exist_ok= \
+        opt.output, opt.source, opt.yolo_model, opt.show_vid, opt.save_vid, \
         opt.save_txt, opt.imgsz, opt.evaluate, opt.half, opt.project, opt.name, opt.exist_ok
     webcam = source == '0' or source.startswith(
         'rtsp') or source.startswith('http') or source.endswith('.txt')
@@ -144,6 +144,8 @@ def detect(opt):
                         c = int(cls)  # integer class
                         label = f'{names[c]} {conf:.2f}'
                         annotator.box_label(bboxes, label, color=colors(c, True))
+
+                # check for boxes in range and annotate
 
             # Print time (inference-only)
             LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')

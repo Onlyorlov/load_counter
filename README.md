@@ -1,5 +1,7 @@
-# Yolov5 + Deep Sort with PyTorch
+# Yolov5 for object counting
 
+TODO
+mailru script
 
 
 
