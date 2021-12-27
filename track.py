@@ -27,8 +27,6 @@ from yolov5.utils.general import (LOGGER, check_img_size, non_max_suppression, s
                                   check_imshow, xyxy2xywh, increment_path)
 from yolov5.utils.torch_utils import select_device, time_sync
 from yolov5.utils.plots import Annotator, colors
-from deep_sort.utils.parser import get_config
-from deep_sort.deep_sort import DeepSort
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # yolov5 deepsort root directory
@@ -44,26 +42,9 @@ def detect(opt):
     webcam = source == '0' or source.startswith(
         'rtsp') or source.startswith('http') or source.endswith('.txt')
 
-    # initialize deepsort
-    cfg = get_config()
-    cfg.merge_from_file(opt.config_deepsort)
-    deepsort = DeepSort(deep_sort_model,
-                        max_dist=cfg.DEEPSORT.MAX_DIST, min_confidence=cfg.DEEPSORT.MIN_CONFIDENCE,
-                        max_iou_distance=cfg.DEEPSORT.MAX_IOU_DISTANCE,
-                        max_age=cfg.DEEPSORT.MAX_AGE, n_init=cfg.DEEPSORT.N_INIT, nn_budget=cfg.DEEPSORT.NN_BUDGET,
-                        use_cuda=True)
-
     # Initialize
     device = select_device(opt.device)
     half &= device.type != 'cpu'  # half precision only supported on CUDA
-
-    # The MOT16 evaluation runs multiple inference streams in parallel, each one writing to
-    # its own .txt file. Hence, in that case, the output folder is not restored
-    if not evaluate:
-        if os.path.exists(out):
-            pass
-            shutil.rmtree(out)  # delete output folder
-        os.makedirs(out)  # make new output folder
 
     # Directories
     save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
@@ -156,40 +137,16 @@ def detect(opt):
                 confs = det[:, 4]
                 clss = det[:, 5]
 
-                # pass detections to deepsort
-                t4 = time_sync()
-                outputs = deepsort.update(xywhs.cpu(), confs.cpu(), clss.cpu(), im0)
-                t5 = time_sync()
-                dt[3] += t5 - t4
-
                 # draw boxes for visualization
-                if len(outputs) > 0:
-                    for j, (output, conf) in enumerate(zip(outputs, confs)):
-
-                        bboxes = output[0:4]
-                        id = output[4]
-                        cls = output[5]
+                if len(det) > 0:
+                    for j, (bboxes, cls, conf) in enumerate(zip(xywhs.cpu(), clss.cpu(), confs.cpu())):
 
                         c = int(cls)  # integer class
-                        label = f'{id} {names[c]} {conf:.2f}'
+                        label = f'{names[c]} {conf:.2f}'
                         annotator.box_label(bboxes, label, color=colors(c, True))
 
-                        if save_txt:
-                            # to MOT format
-                            bbox_left = output[0]
-                            bbox_top = output[1]
-                            bbox_w = output[2] - output[0]
-                            bbox_h = output[3] - output[1]
-                            # Write MOT compliant results to file
-                            with open(txt_path, 'a') as f:
-                                f.write(('%g ' * 10 + '\n') % (frame_idx + 1, id, bbox_left,  # MOT format
-                                                               bbox_top, bbox_w, bbox_h, -1, -1, -1, -1))
-
-            else:
-                deepsort.increment_ages()
-
             # Print time (inference-only)
-            LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s), DeepSort:({t5 - t4:.3f}s)')
+            LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
             # Stream results
             im0 = annotator.result()
@@ -210,13 +167,14 @@ def detect(opt):
                         h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                     else:  # stream
                         fps, w, h = 30, im0.shape[1], im0.shape[0]
+                        save_path += '.mp4'
 
                     vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                 vid_writer.write(im0)
 
     # Print results
     t = tuple(x / seen * 1E3 for x in dt)  # speeds per image
-    LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS, %.1fms deep sort update \
+    LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS \
         per image at shape {(1, 3, *imgsz)}' % t)
     if save_txt or save_vid:
         print('Results saved to %s' % os.getcwd() + os.sep + out)
@@ -227,7 +185,6 @@ def detect(opt):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--yolo_model', nargs='+', type=str, default='yolov5x.pt', help='model.pt path(s)')
-    parser.add_argument('--deep_sort_model', type=str, default='osnet_x0_25')
     parser.add_argument('--source', type=str, default='0', help='source')  # file/folder, 0 for webcam
     parser.add_argument('--output', type=str, default='inference/output', help='output folder')  # output folder
     parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[640], help='inference size h,w')
@@ -237,7 +194,6 @@ if __name__ == '__main__':
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--show-vid', action='store_true', help='display tracking video results')
     parser.add_argument('--save-vid', action='store_true', help='save video tracking results')
-    parser.add_argument('--save-txt', action='store_true', help='save MOT compliant results to *.txt')
     # class 0 is person, 1 is bycicle, 2 is car... 79 is oven
     parser.add_argument('--classes', nargs='+', type=int, help='filter by class: --class 0, or --class 16 17')
     parser.add_argument('--agnostic-nms', action='store_true', help='class-agnostic NMS')
