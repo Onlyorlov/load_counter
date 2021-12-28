@@ -110,6 +110,7 @@ def detect(opt):
             arr = np.array(mask, dtype=np.int32)
             roi = np.zeros(img.shape[2:],dtype=np.uint8)
             cv2.fillPoly(roi, arr, 1)
+            cv2.imwrite('/content/mask.jpg', roi)
 
         # Process detections
         for i, det in enumerate(pred):  # detections per image
