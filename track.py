@@ -126,15 +126,17 @@ def detect(opt):
                     img.shape[2:], det[:, :4], im0.shape).round()
 
                 # Print results
+                p_count = 0
                 for c in det[:, -1].unique():
                     n = (det[:, -1] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
+                    if int(c) == 0:
+                        p_count = n
 
                 xyxy = det[:, 0:4]
                 confs = det[:, 4]
                 clss = det[:, 5]
 
-                inplace_counter = 0
                 # draw boxes for visualization
                 if len(det) > 0:
                     for j, (bbox, cls, conf) in enumerate(zip(xyxy.cpu(), clss.cpu(), confs.cpu())):
@@ -142,6 +144,9 @@ def detect(opt):
                         c = int(cls)  # integer class
                         label = f'{names[c]} {conf:.2f}'
                         annotator.box_label(bbox, label, color=colors(c, True))
+
+                    if mask and p_count:
+                        annotator.text([0,0], f'{p_count} people in a target region', color=colors(0, True))
 
 
             # Print time (inference-only)
