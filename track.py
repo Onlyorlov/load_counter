@@ -86,7 +86,7 @@ def detect(opt):
     dt, seen = [0.0, 0.0, 0.0], 0
 
     #output for counter
-    output = []
+    out = []
 
     for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
         t1 = time_sync()
@@ -180,7 +180,7 @@ def detect(opt):
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                     vid_writer.write(im0)
 
-                output.append((frame_idx, i, p_count))
+                out.append((frame_idx, i, p_count))
         else:
             for i, det in enumerate(pred):  # detections per image
                 seen += 1
@@ -197,12 +197,12 @@ def detect(opt):
                     if int(c) == 0:
                         p_count = n
         
-                output.append((frame_idx, i, p_count))
+                out.append((frame_idx, i, p_count))
 
     # Save results
     import pickle
     with open(save_dir/'output.txt', 'wb') as fp:
-        pickle.dump(output, fp)
+        pickle.dump(out, fp)
 
     # Print results
     t = tuple(x / seen * 1E3 for x in dt)  # speeds per image
