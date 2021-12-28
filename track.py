@@ -157,7 +157,7 @@ def detect(opt):
                             if intersection > mask_thres:
                                 inplace_counter+=1
                     if mask:
-                        annotator.text([0,0], f'{inplace_counter} people in a target region', (0, 255, 0))
+                        annotator.text([0,0], f'{inplace_counter} people in a target region', color=colors(c, True))
 
 
             # Print time (inference-only)
