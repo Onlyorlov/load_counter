@@ -109,7 +109,6 @@ def detect(opt):
         if mask:
             arr = np.array(mask, dtype=np.int32)
             roi = np.zeros(im0s.shape, dtype=np.uint8)
-            print(roi.shape)
             cv2.fillPoly(roi, arr, 1)
 
         # Process detections
