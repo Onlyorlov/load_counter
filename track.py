@@ -84,7 +84,10 @@ def detect(opt):
     if pt and device.type != 'cpu':
         model(torch.zeros(1, 3, *imgsz).to(device).type_as(next(model.model.parameters())))  # warmup
     dt, seen = [0.0, 0.0, 0.0], 0
-    
+
+    #output for counter
+    output = []
+
     for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
         t1 = time_sync()
         img = torch.from_numpy(img).to(device)
@@ -106,75 +109,92 @@ def detect(opt):
         dt[2] += time_sync() - t3
 
         # Process detections
-        for i, det in enumerate(pred):  # detections per image
-            seen += 1
-            if webcam:  # batch_size >= 1
-                p, im0, _ = path[i], im0s[i].copy(), dataset.count
-                s += f'{i}: '
-            else:
-                p, im0, _ = path, im0s.copy(), getattr(dataset, 'frame', 0)
+        if save_vid or show_vid:
+            for i, det in enumerate(pred):  # detections per image
+                seen += 1
+                if webcam:  # batch_size >= 1
+                    p, im0, _ = path[i], im0s[i].copy(), dataset.count
+                    s += f'{i}: '
+                else:
+                    p, im0, _ = path, im0s.copy(), getattr(dataset, 'frame', 0)
 
-            p = Path(p)  # to Path
-            save_path = str(save_dir / p.name)  # im.jpg, vid.mp4, ...
-            s += '%gx%g ' % img.shape[2:]  # print string
+                p = Path(p)  # to Path
+                save_path = str(save_dir / p.name)  # im.jpg, vid.mp4, ...
+                s += '%gx%g ' % img.shape[2:]  # print string
 
-            annotator = Annotator(im0, line_width=2, pil=not ascii)
+                annotator = Annotator(im0, line_width=2, pil=not ascii)
 
-            if det is not None and len(det):
-                # Rescale boxes from img_size to im0 size
-                det[:, :4] = scale_coords(
-                    img.shape[2:], det[:, :4], im0.shape).round()
+                if det is not None and len(det):
+                    # Rescale boxes from img_size to im0 size
+                    det[:, :4] = scale_coords(
+                        img.shape[2:], det[:, :4], im0.shape).round()
 
-                # Print results
+                    # Print results
+                    p_count = 0
+                    for c in det[:, -1].unique():
+                        n = (det[:, -1] == c).sum()  # detections per class
+                        s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
+                        if int(c) == 0:
+                            p_count = n
+
+                    xyxy = det[:, 0:4]
+                    confs = det[:, 4]
+                    clss = det[:, 5]
+
+                    # draw boxes for visualization
+                    if len(det) > 0:
+                        for j, (bbox, cls, conf) in enumerate(zip(xyxy.cpu(), clss.cpu(), confs.cpu())):
+
+                            c = int(cls)  # integer class
+                            label = f'{names[c]} {conf:.2f}'
+                            annotator.box_label(bbox, label, color=colors(c, True))
+
+                        if mask and p_count:
+                            annotator.text([0,0], f'{p_count} people in target region', color=colors(0, True))
+
+
+                # Print time (inference-only)
+                LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
+
+                im0 = annotator.result()
+                # Stream results
+                if show_vid:
+                    cv2.imshow(p, im0)
+                    if cv2.waitKey(1) == ord('q'):  # q to quit
+                        raise StopIteration
+
+                # Save results (image with detections)
+                if save_vid:
+                    if vid_path != save_path:  # new video
+                        vid_path = save_path
+                        if isinstance(vid_writer, cv2.VideoWriter):
+                            vid_writer.release()  # release previous video writer
+                        if vid_cap:  # video
+                            fps = vid_cap.get(cv2.CAP_PROP_FPS)
+                            w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                            h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                        else:  # stream
+                            fps, w, h = 30, im0.shape[1], im0.shape[0]
+                            save_path += '.mp4'
+
+                        vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+                    vid_writer.write(im0)
+        else:
+            for i, det in enumerate(pred):  # detections per image
+                seen += 1
                 p_count = 0
                 for c in det[:, -1].unique():
                     n = (det[:, -1] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
                     if int(c) == 0:
                         p_count = n
+        
+        output.append((frame_idx, path, p_count))
 
-                xyxy = det[:, 0:4]
-                confs = det[:, 4]
-                clss = det[:, 5]
-
-                # draw boxes for visualization
-                if len(det) > 0:
-                    for j, (bbox, cls, conf) in enumerate(zip(xyxy.cpu(), clss.cpu(), confs.cpu())):
-
-                        c = int(cls)  # integer class
-                        label = f'{names[c]} {conf:.2f}'
-                        annotator.box_label(bbox, label, color=colors(c, True))
-
-                    if mask and p_count:
-                        annotator.text([0,0], f'{p_count} people in target region', color=colors(0, True))
-
-
-            # Print time (inference-only)
-            LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
-
-            # Stream results
-            im0 = annotator.result()
-            if show_vid:
-                cv2.imshow(p, im0)
-                if cv2.waitKey(1) == ord('q'):  # q to quit
-                    raise StopIteration
-
-            # Save results (image with detections)
-            if save_vid:
-                if vid_path != save_path:  # new video
-                    vid_path = save_path
-                    if isinstance(vid_writer, cv2.VideoWriter):
-                        vid_writer.release()  # release previous video writer
-                    if vid_cap:  # video
-                        fps = vid_cap.get(cv2.CAP_PROP_FPS)
-                        w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                        h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                    else:  # stream
-                        fps, w, h = 30, im0.shape[1], im0.shape[0]
-                        save_path += '.mp4'
-
-                    vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
-                vid_writer.write(im0)
+    # Save results
+    import pickle
+    with open(save_dir+'output.txt', 'wb') as fp:
+        pickle.dump(output, fp)
 
     # Print results
     t = tuple(x / seen * 1E3 for x in dt)  # speeds per image
