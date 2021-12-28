@@ -107,9 +107,7 @@ def detect(opt):
 
         # ROI -- будет инициализироваться на каждом кадре, что бессмысленно!! Вытащить размер изображения по-другому!!!
         if mask:
-            print(mask)
             arr = np.array(mask, dtype=np.int32)
-            print(type(arr), arr.shape)
             roi = np.zeros(img.shape[2:],dtype=np.uint8)
             cv2.fillPoly(roi, arr, 1)
 
@@ -154,6 +152,7 @@ def detect(opt):
                         # check for boxes in given ROI
                         if mask:
                             x1, y1, x2, y2 = bbox
+                            print('Coords', x1, y1, x2, y2)
                             intersection = np.sum(roi[y1:y2, x1:x2])/((x1 - x2) * (y1- y2))
                             if intersection > mask_thres:
                                 inplace_counter+=1
