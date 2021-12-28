@@ -146,7 +146,7 @@ def detect(opt):
                         annotator.box_label(bbox, label, color=colors(c, True))
 
                     if mask and p_count:
-                        annotator.text([0,0], f'{p_count} people in a target region', color=colors(0, True))
+                        annotator.text([0,0], f'{p_count} people in target region', color=colors(0, True))
 
 
             # Print time (inference-only)
