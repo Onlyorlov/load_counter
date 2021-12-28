@@ -109,6 +109,7 @@ def detect(opt):
         if mask:
             print(mask)
             arr = np.array(mask, dtype=np.int32)
+            print(type(arr), arr.shape)
             roi = np.zeros(img.shape[2:],dtype=np.uint8)
             cv2.fillPoly(roi, arr, 1)
 
