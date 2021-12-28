@@ -59,6 +59,7 @@ Default threshold - 70%(0.7 of bbox area should be inside of ROI).
 <img src="cows.jpg" width="400"/> <img src="cows_masked.jpg" width="400"/> 
 </p>
 </div>
+
 ```bash
 $ python track.py --source 0  --mask '[[[484,412], [754,377], [1333,433], [1404,1017], [1404,1076], [122,1076],[419,804]]]'
 ```
