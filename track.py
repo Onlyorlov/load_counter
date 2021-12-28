@@ -14,6 +14,7 @@ import os
 import platform
 import shutil
 import time
+import numpy as np
 from pathlib import Path
 import cv2
 import torch
@@ -36,9 +37,9 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 
 def detect(opt):
-    out, source, yolo_model, show_vid, save_vid, imgsz, project, name, mask, exist_ok= \
+    out, source, yolo_model, show_vid, save_vid, imgsz, project, name, mask, mask_thres, exist_ok= \
         opt.output, opt.source, opt.yolo_model, opt.show_vid, opt.save_vid, \
-        opt.imgsz, opt.project, opt.name, opt.mask, opt.exist_ok
+        opt.imgsz, opt.project, opt.name, opt.mask, opt.mask_thres, opt.exist_ok
     webcam = source == '0' or source.startswith(
         'rtsp') or source.startswith('http') or source.endswith('.txt')
 
@@ -82,6 +83,7 @@ def detect(opt):
     if pt and device.type != 'cpu':
         model(torch.zeros(1, 3, *imgsz).to(device).type_as(next(model.model.parameters())))  # warmup
     dt, seen = [0.0, 0.0, 0.0], 0
+    
     for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
         t1 = time_sync()
         img = torch.from_numpy(img).to(device)
@@ -101,6 +103,12 @@ def detect(opt):
         # Apply NMS
         pred = non_max_suppression(pred, opt.conf_thres, opt.iou_thres, opt.classes, opt.agnostic_nms, max_det=opt.max_det)
         dt[2] += time_sync() - t3
+
+        # ROI -- будет инициализироваться на каждом кадре, что бессмысленно!! Вытащить размер изображения по-другому!!!
+        if mask:
+            arr = np.array(mask)
+            roi = np.zeros(img.shape[2:],dtype=np.uint8)
+            cv2.fillPoly(roi, arr, 1)
 
         # Process detections
         for i, det in enumerate(pred):  # detections per image
@@ -140,13 +148,14 @@ def detect(opt):
                         label = f'{names[c]} {conf:.2f}'
                         annotator.box_label(bbox, label, color=colors(c, True))
 
-                        # # check for boxes in given range
-                        # if mask:
-                        #     # if bbox in region:
-                        #     #     inplace_counter+=1
-                        #     pass
-                    # if mask:
-                    annotator.text([0,0], f'{inplace_counter} people in a target region', (0, 255, 0))
+                        # check for boxes in given ROI
+                        if mask:
+                            x1, y1, x2, y2 = bbox
+                            intersection = np.sum(roi[y1:y2, x1:x2])/((x1 - x2) * (y1- y2))
+                            if intersection > mask_thres:
+                                inplace_counter+=1
+                    if mask:
+                        annotator.text([0,0], f'{inplace_counter} people in a target region', (0, 255, 0))
 
 
             # Print time (inference-only)
@@ -209,7 +218,8 @@ if __name__ == '__main__':
     parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
     parser.add_argument('--project', default=ROOT / 'runs', help='save results to project/name')
     parser.add_argument('--name', default='exp', help='save results to project/name')
-    parser.add_argument('--mask', default=None, help='path to mask for region of interest')
+    parser.add_argument('--mask', default=None, help='all outer corners of the region of interest(ROI)')
+    parser.add_argument('--mask-thres', type=float, default=0.5, help='I threshold for ROI')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     opt = parser.parse_args()
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
