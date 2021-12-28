@@ -151,7 +151,7 @@ def detect(opt):
 
                         # check for boxes in given ROI
                         if mask:
-                            x1, y1, x2, y2 = bbox
+                            x1, y1, x2, y2 = bbox.numpy(dtype=int)
                             print('Coords', x1, y1, x2, y2)
                             intersection = np.sum(roi[y1:y2, x1:x2])/((x1 - x2) * (y1- y2))
                             if intersection > mask_thres:
