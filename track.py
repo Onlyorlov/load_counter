@@ -39,9 +39,9 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 
 def detect(opt):
-    out, source, yolo_model, show_vid, save_vid, imgsz, project, name, mask, mask_thres, exist_ok= \
+    out, source, yolo_model, show_vid, save_vid, imgsz, project, name, mask, exist_ok= \
         opt.output, opt.source, opt.yolo_model, opt.show_vid, opt.save_vid, \
-        opt.imgsz, opt.project, opt.name, opt.mask, opt.mask_thres, opt.exist_ok
+        opt.imgsz, opt.project, opt.name, opt.mask, opt.exist_ok
     webcam = source == '0' or source.startswith(
         'rtsp') or source.startswith('http') or source.endswith('.txt')
 
@@ -204,7 +204,6 @@ if __name__ == '__main__':
     parser.add_argument('--project', default=ROOT / 'runs', help='save results to project/name')
     parser.add_argument('--name', default='exp', help='save results to project/name')
     parser.add_argument('--mask', type=json.loads, default=None, help='all outer corners of the region of interest(ROI)')
-    parser.add_argument('--mask-thres', type=float, default=0.7, help='I threshold for ROI')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     opt = parser.parse_args()
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
