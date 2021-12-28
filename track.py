@@ -12,6 +12,7 @@ sys.path.insert(0, './yolov5')
 import argparse
 import os
 import platform
+import json
 import shutil
 import time
 import numpy as np
@@ -219,8 +220,8 @@ if __name__ == '__main__':
     parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
     parser.add_argument('--project', default=ROOT / 'runs', help='save results to project/name')
     parser.add_argument('--name', default='exp', help='save results to project/name')
-    parser.add_argument('--mask', type=list, nargs='+', default=None, help='all outer corners of the region of interest(ROI)')
-    parser.add_argument('--mask-thres', type=float, default=0.5, help='I threshold for ROI')
+    parser.add_argument('--mask', type=json.loads, default=None, help='all outer corners of the region of interest(ROI)')
+    parser.add_argument('--mask-thres', type=float, default=0.7, help='I threshold for ROI')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     opt = parser.parse_args()
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
