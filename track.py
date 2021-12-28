@@ -144,13 +144,9 @@ def detect(opt):
                         label = f'{names[c]} {conf:.2f}'
                         annotator.box_label(bbox, label, color=colors(c, True))
 
-                        # check for boxes of people in given ROI
+                        # number of people in given ROI взять из n
                         if mask and c == 0:
-                            x1, y1, x2, y2 = bbox.int().numpy()
-                            intersection = np.sum(roi[y1:y2, x1:x2])/((x1 - x2) * (y1- y2))
-                            # threshold
-                            if intersection > mask_thres:
-                                inplace_counter+=1
+                            inplace_counter+=1
                     if mask:
                         annotator.text([0,0], f'{inplace_counter} people in a target region', color=colors(0, True))
 
