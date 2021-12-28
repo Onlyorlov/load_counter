@@ -106,7 +106,7 @@ def detect(opt):
 
         # ROI -- будет инициализироваться на каждом кадре, что бессмысленно!! Вытащить размер изображения по-другому!!!
         if mask:
-            arr = np.array(mask)
+            arr = np.array(mask, dtype=np.int32)
             print(arr.shape)
             roi = np.zeros(img.shape[2:],dtype=np.uint8)
             cv2.fillPoly(roi, arr, 1)
