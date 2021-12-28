@@ -73,7 +73,7 @@ def detect(opt):
         dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt and not jit)
         bs = 1  # batch_size
     vid_path, vid_writer = [None] * bs, [None] * bs
-
+    print(stride)
     # Get names and colors
     names = model.module.names if hasattr(model, 'module') else model.names
 
