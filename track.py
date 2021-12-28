@@ -106,8 +106,8 @@ def detect(opt):
 
         # ROI -- будет инициализироваться на каждом кадре, что бессмысленно!! Вытащить размер изображения по-другому!!!
         if mask:
+            print(mask)
             arr = np.array(mask, dtype=np.int32)
-            print(arr.shape)
             roi = np.zeros(img.shape[2:],dtype=np.uint8)
             cv2.fillPoly(roi, arr, 1)
 
@@ -219,7 +219,7 @@ if __name__ == '__main__':
     parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
     parser.add_argument('--project', default=ROOT / 'runs', help='save results to project/name')
     parser.add_argument('--name', default='exp', help='save results to project/name')
-    parser.add_argument('--mask', type=list, default=None, help='all outer corners of the region of interest(ROI)')
+    parser.add_argument('--mask', type=list, nargs='+', default=None, help='all outer corners of the region of interest(ROI)')
     parser.add_argument('--mask-thres', type=float, default=0.5, help='I threshold for ROI')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     opt = parser.parse_args()
