@@ -74,7 +74,6 @@ def detect(opt):
         dataset = LoadMaskedImages(source, img_size=imgsz, stride=stride, mask=mask, auto=pt and not jit)
         bs = 1  # batch_size
     vid_path, vid_writer = [None] * bs, [None] * bs
-    print(stride)
     # Get names and colors
     names = model.module.names if hasattr(model, 'module') else model.names
 
@@ -143,12 +142,6 @@ def detect(opt):
                         c = int(cls)  # integer class
                         label = f'{names[c]} {conf:.2f}'
                         annotator.box_label(bbox, label, color=colors(c, True))
-
-                        # number of people in given ROI взять из n
-                        if mask and c == 0:
-                            inplace_counter+=1
-                    if mask:
-                        annotator.text([0,0], f'{inplace_counter} people in a target region', color=colors(0, True))
 
 
             # Print time (inference-only)
