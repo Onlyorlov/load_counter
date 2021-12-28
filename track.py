@@ -179,9 +179,17 @@ def detect(opt):
 
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                     vid_writer.write(im0)
+
+                output.append((frame_idx, i, p_count))
         else:
             for i, det in enumerate(pred):  # detections per image
                 seen += 1
+                if webcam:  # batch_size >= 1
+                    p, _ = path[i], dataset.count
+                    s += f'{i}: '
+                else:
+                    p, _ = path, getattr(dataset, 'frame', 0)
+
                 p_count = 0
                 for c in det[:, -1].unique():
                     n = (det[:, -1] == c).sum()  # detections per class
@@ -189,7 +197,7 @@ def detect(opt):
                     if int(c) == 0:
                         p_count = n
         
-        output.append((frame_idx, path, p_count))
+                output.append((frame_idx, i, p_count))
 
     # Save results
     import pickle
