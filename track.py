@@ -25,6 +25,7 @@ from yolov5.models.experimental import attempt_load
 from yolov5.utils.downloads import attempt_download
 from yolov5.models.common import DetectMultiBackend
 from yolov5.utils.datasets import LoadImages, LoadStreams
+from yolov5.utils.datasets import LoadMaskedImages
 from yolov5.utils.general import (LOGGER, check_img_size, non_max_suppression, scale_coords, 
                                   check_imshow, xyxy2xywh, increment_path)
 from yolov5.utils.torch_utils import select_device, time_sync
@@ -70,7 +71,7 @@ def detect(opt):
         dataset = LoadStreams(source, img_size=imgsz, stride=stride, auto=pt and not jit)
         bs = len(dataset)  # batch_size
     else:
-        dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt and not jit)
+        dataset = LoadMaskedImages(source, img_size=imgsz, stride=stride, mask=mask, auto=pt and not jit)
         bs = 1  # batch_size
     vid_path, vid_writer = [None] * bs, [None] * bs
     print(stride)
@@ -104,12 +105,6 @@ def detect(opt):
         # Apply NMS
         pred = non_max_suppression(pred, opt.conf_thres, opt.iou_thres, opt.classes, opt.agnostic_nms, max_det=opt.max_det)
         dt[2] += time_sync() - t3
-
-        # ROI -- будет создаваться на каждом кадре, что бессмысленно!! Вытащить размер изображения по-другому!!!
-        if mask:
-            arr = np.array(mask, dtype=np.int32)
-            roi = np.zeros(im0s.shape, dtype=np.uint8)
-            cv2.fillPoly(roi, arr, 1)
 
         # Process detections
         for i, det in enumerate(pred):  # detections per image
