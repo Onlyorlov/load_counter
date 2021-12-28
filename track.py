@@ -146,7 +146,7 @@ def detect(opt):
                         #     #     inplace_counter+=1
                         #     pass
                     # if mask:
-                    annotator.text([0,0], f'Число людей в зоне:{inplace_counter}')
+                    annotator.text([0,0], f'{inplace_counter} people in a target region', (0, 255, 0))
 
 
             # Print time (inference-only)
