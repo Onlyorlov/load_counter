@@ -86,7 +86,7 @@ def detect(opt):
     dt, seen = [0.0, 0.0, 0.0], 0
 
     #output for counter
-    out = []
+    output = []
 
     for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
         t1 = time_sync()
@@ -151,7 +151,7 @@ def detect(opt):
 
                         if mask and p_count:
                             annotator.text([0,0], f'{p_count} people in target region', color=colors(0, True))
-
+                    output.append((path, frame_idx, p_count.item()))
 
                 # Print time (inference-only)
                 LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
@@ -179,30 +179,23 @@ def detect(opt):
 
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                     vid_writer.write(im0)
-
-                out.append((frame_idx, i, p_count))
         else:
             for i, det in enumerate(pred):  # detections per image
                 seen += 1
-                if webcam:  # batch_size >= 1
-                    p, _ = path[i], dataset.count
-                    s += f'{i}: '
-                else:
-                    p, _ = path, getattr(dataset, 'frame', 0)
-
-                p_count = 0
-                for c in det[:, -1].unique():
-                    n = (det[:, -1] == c).sum()  # detections per class
-                    s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
-                    if int(c) == 0:
-                        p_count = n
+                if det is not None and len(det):
+                    p_count = 0
+                    for c in det[:, -1].unique():
+                        n = (det[:, -1] == c).sum()  # detections per class
+                        s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
+                        if int(c) == 0:
+                            p_count = n
         
-                out.append((frame_idx, i, p_count))
+                    output.append((path, frame_idx, p_count.item()))
 
     # Save results
     import pickle
     with open(save_dir/'output.txt', 'wb') as fp:
-        pickle.dump(out, fp)
+        pickle.dump(output, fp)
 
     # Print results
     t = tuple(x / seen * 1E3 for x in dt)  # speeds per image
