@@ -54,6 +54,11 @@ For counting objects in region of interest(ROI) you can submit list of coordinat
 Coordinates in pixels in original image shape.
 Default threshold - 70%(0.7 of bbox area should be inside of ROI).
 
+<div align="center">
+<p>
+<img src="cows.jpg" width="400"/> <img src="cows_masked.jpg" width="400"/> 
+</p>
+
 ```bash
 $ python track.py --source 0  --mask '[[[484,412], [754,377], [1333,433], [1404,1017], [1404,1076], [122,1076],[419,804]]]'
 ```
