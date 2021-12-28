@@ -149,13 +149,11 @@ def detect(opt):
                         label = f'{names[c]} {conf:.2f}'
                         annotator.box_label(bbox, label, color=colors(c, True))
 
-                        # check for boxes in given ROI
-                        if mask:
+                        # check for boxes of people in given ROI
+                        if mask and c == 0:
                             x1, y1, x2, y2 = bbox.int().numpy()
                             intersection = np.sum(roi[y1:y2, x1:x2])/((x1 - x2) * (y1- y2))
-                            # print('ROI', np.sum(roi[y1:y2, x1:x2]))
-                            # print('ALL', ((x1 - x2) * (y1- y2)))
-                            # print('Result', intersection)
+                            # threshold
                             if intersection > mask_thres:
                                 inplace_counter+=1
                     if mask:
@@ -191,7 +189,6 @@ def detect(opt):
 
     # Print results
     t = tuple(x / seen * 1E3 for x in dt)  # speeds per image
-    print(t, *imgsz)
     LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS \
         per image at shape {(1, 3, *imgsz)}' % t)
     if save_vid:
