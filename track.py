@@ -193,7 +193,7 @@ def detect(opt):
 
     # Save results
     import pickle
-    with open(save_dir+'output.txt', 'wb') as fp:
+    with open(save_dir/'output.txt', 'wb') as fp:
         pickle.dump(output, fp)
 
     # Print results
