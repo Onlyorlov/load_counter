@@ -105,10 +105,11 @@ def detect(opt):
         pred = non_max_suppression(pred, opt.conf_thres, opt.iou_thres, opt.classes, opt.agnostic_nms, max_det=opt.max_det)
         dt[2] += time_sync() - t3
 
-        # ROI -- будет инициализироваться на каждом кадре, что бессмысленно!! Вытащить размер изображения по-другому!!!
+        # ROI -- будет создаваться на каждом кадре, что бессмысленно!! Вытащить размер изображения по-другому!!!
         if mask:
             arr = np.array(mask, dtype=np.int32)
             roi = np.zeros(im0s.shape, dtype=np.uint8)
+            print(roi.shape)
             cv2.fillPoly(roi, arr, 1)
 
         # Process detections
