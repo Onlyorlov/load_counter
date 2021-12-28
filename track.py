@@ -191,7 +191,7 @@ def detect(opt):
                             p_count = n
 
                     output.append((path, frame_idx, p_count.item()))
-                                # Print time (inference-only)
+                # Print time (inference-only)
                 LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
     # Save results
