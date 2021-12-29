@@ -20,7 +20,7 @@ from pathlib import Path
 import cv2
 import torch
 import torch.backends.cudnn as cudnn
-from tqdm import trange
+import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from yolov5.models.experimental import attempt_load
@@ -90,7 +90,7 @@ def detect(opt):
     #output for counter
     output = []
     with logging_redirect_tqdm():
-        for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
+        for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(tqdm(dataset)):
             t1 = time_sync()
             img = torch.from_numpy(img).to(device)
             img = img.float()
