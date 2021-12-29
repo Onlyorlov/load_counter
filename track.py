@@ -134,7 +134,7 @@ def detect(opt):
                         n = (det[:, -1] == c).sum()  # detections per class
                         s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
                         if int(c) == 0:
-                            p_count = n
+                            p_count = n.item()
 
                     xyxy = det[:, 0:4]
                     confs = det[:, 4]
@@ -151,7 +151,7 @@ def detect(opt):
                         if mask and p_count:
                             annotator.text([0,0], f'{p_count} people in target region', color=colors(0, True))
 
-                output.append((path, s, p_count.item()))
+                output.append((path, s, p_count))
                 # Print time (inference-only)
                 LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
@@ -187,9 +187,9 @@ def detect(opt):
                         n = (det[:, -1] == c).sum()  # detections per class
                         s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
                         if int(c) == 0:
-                            p_count = n
+                            p_count = n.item()
 
-                output.append((path, s, p_count.item()))
+                output.append((path, s, p_count))
                 # Print time (inference-only)
                 LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
