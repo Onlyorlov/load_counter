@@ -39,9 +39,9 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 
 def detect(opt):
-    out, source, yolo_model, show_vid, save_vid, imgsz, project, name, mask, exist_ok, fps= \
+    out, source, yolo_model, show_vid, save_vid, imgsz, project, name, mask, exist_ok, coef= \
         opt.output, opt.source, opt.yolo_model, opt.show_vid, opt.save_vid, \
-        opt.imgsz, opt.project, opt.name, opt.mask, opt.fps, opt.exist_ok
+        opt.imgsz, opt.project, opt.name, opt.mask, opt.coef, opt.exist_ok
     webcam = source == '0' or source.startswith(
         'rtsp') or source.startswith('http') or source.endswith('.txt')
 
@@ -68,10 +68,10 @@ def detect(opt):
     if webcam:
         show_vid = check_imshow()
         cudnn.benchmark = True  # set True to speed up constant image size inference
-        dataset = LoadStreams(source, img_size=imgsz, stride=stride, fps=fps, auto=pt and not jit)
+        dataset = LoadStreams(source, img_size=imgsz, stride=stride, mask=mask, auto=pt and not jit)
         bs = len(dataset)  # batch_size
     else:
-        dataset = LoadMaskedImages(source, img_size=imgsz, stride=stride, mask=mask, fps=fps, auto=pt and not jit)
+        dataset = LoadMaskedImages(source, img_size=imgsz, stride=stride, mask=mask, coef=coef, auto=pt and not jit)
         bs = 1  # batch_size
     vid_path, vid_writer = [None] * bs, [None] * bs
     # Get names and colors
@@ -232,7 +232,7 @@ if __name__ == '__main__':
     parser.add_argument('--project', default=ROOT / 'runs', help='save results to project/name')
     parser.add_argument('--name', default='exp', help='save results to project/name')
     parser.add_argument('--mask', type=json.loads, default=None, help='all outer corners of the region of interest(ROI)')
-    parser.add_argument('--fps', type=int, default=None, help='desired fps')
+    parser.add_argument('--coef', type=int, default=None, help='desired coef to decrease fps')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     opt = parser.parse_args()
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
