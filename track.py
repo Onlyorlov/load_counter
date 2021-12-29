@@ -39,7 +39,7 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 
 def detect(opt):
-    out, source, yolo_model, show_vid, save_vid, imgsz, project, name, mask, exist_ok, coef= \
+    out, source, yolo_model, show_vid, save_vid, imgsz, project, name, mask, coef, exist_ok= \
         opt.output, opt.source, opt.yolo_model, opt.show_vid, opt.save_vid, \
         opt.imgsz, opt.project, opt.name, opt.mask, opt.coef, opt.exist_ok
     webcam = source == '0' or source.startswith(
