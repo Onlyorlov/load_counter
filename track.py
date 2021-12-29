@@ -13,6 +13,7 @@ import argparse
 import os
 import platform
 import json
+import pickle
 import shutil
 import time
 import numpy as np
@@ -221,7 +222,6 @@ def detect(opt):
             LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
     # Save results
-    import pickle
     with open(save_dir/'output.txt', 'wb') as fp:
         pickle.dump(output, fp)
 
