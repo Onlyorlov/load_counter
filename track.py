@@ -184,12 +184,9 @@ def detect(opt):
                     vid_path = save_path
                     with open(save_path+'.txt', 'wb') as fp:
                         pickle.dump(out, fp)
-                    output = out.copy()
+                    output.extend(out)
                     out = []
-                    
-            output.extend(output)
-
-                
+   
         else:
             for i, det in enumerate(pred):  # detections per image
                 seen += 1
@@ -209,7 +206,7 @@ def detect(opt):
                         s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
                         if int(c) == 0:
                             p_count = n.item()
-                
+
                 # Print time (inference-only)
                 LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
@@ -219,10 +216,8 @@ def detect(opt):
                     vid_path = save_path
                     with open(save_path+'.txt', 'wb') as fp:
                         pickle.dump(out, fp)
-                    output = out.copy()
+                    output.extend(out)
                     out = []
-
-            output.extend(output)
 
     # Save results
     with open(save_dir/'output.txt', 'wb') as fp:
