@@ -151,7 +151,7 @@ def detect(opt):
                             annotator.text([0,0], f'{p_count} people in target region', color=colors(0, True))
 
                 # Print time (inference-only)
-                LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
+                # LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
                 im0 = annotator.result()
                 # Stream results
@@ -180,6 +180,7 @@ def detect(opt):
                 out.append((path, s, p_count)) # save detections
                 #Save counter
                 if vid_path != save_path:  # if new video
+                    LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
                     vid_path = save_path
                     with open(save_path+'.txt', 'wb') as fp: # save old video data/create initial file
                         pickle.dump(out, fp)
@@ -207,11 +208,12 @@ def detect(opt):
                             p_count = n.item()
 
                 # Print time (inference-only)
-                LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
+                # LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
                 out.append((path, s, p_count)) # save detections
                 #Save counter
                 if vid_path != save_path:  # if new video
+                    LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
                     vid_path = save_path
                     with open(save_path+'.txt', 'wb') as fp: # save old video data/create initial file
                         pickle.dump(out, fp)
