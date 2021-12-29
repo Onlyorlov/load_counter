@@ -179,6 +179,7 @@ def detect(opt):
                 if vid_path != save_path:  # new video
                     vid_path = save_path
                     with open(save_path/'.txt', 'wb') as fp:
+                        pickle.dump(out, fp)
                     output = out.copy()
                     out = []
                     
