@@ -20,11 +20,7 @@ from pathlib import Path
 import cv2
 import torch
 import torch.backends.cudnn as cudnn
-from tqdm import tqdm
-from tqdm.contrib.logging import logging_redirect_tqdm
 
-from yolov5.models.experimental import attempt_load
-from yolov5.utils.downloads import attempt_download
 from yolov5.models.common import DetectMultiBackend
 from yolov5.utils.datasets import LoadImages, LoadStreams
 from yolov5.utils.datasets import LoadMaskedImages
@@ -87,113 +83,141 @@ def detect(opt):
         model(torch.zeros(1, 3, *imgsz).to(device).type_as(next(model.model.parameters())))  # warmup
     dt, seen = [0.0, 0.0, 0.0], 0
 
-    #output for counter
+    #output for total counter
     output = []
-    with logging_redirect_tqdm():
-        for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(tqdm(dataset)):
-            t1 = time_sync()
-            img = torch.from_numpy(img).to(device)
-            img = img.float()
-            img /= 255.0  # 0 - 255 to 0.0 - 1.0
-            if img.ndimension() == 3:
-                img = img.unsqueeze(0)
-            t2 = time_sync()
-            dt[0] += t2 - t1
+    out = []
+    for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
+        t1 = time_sync()
+        img = torch.from_numpy(img).to(device)
+        img = img.float()
+        img /= 255.0  # 0 - 255 to 0.0 - 1.0
+        if img.ndimension() == 3:
+            img = img.unsqueeze(0)
+        t2 = time_sync()
+        dt[0] += t2 - t1
 
-            # Inference
-            visualize = increment_path(save_dir / Path(path).stem, mkdir=True) if opt.visualize else False
-            pred = model(img, augment=opt.augment, visualize=visualize)
-            t3 = time_sync()
-            dt[1] += t3 - t2
+        # Inference
+        visualize = increment_path(save_dir / Path(path).stem, mkdir=True) if opt.visualize else False
+        pred = model(img, augment=opt.augment, visualize=visualize)
+        t3 = time_sync()
+        dt[1] += t3 - t2
 
-            # Apply NMS
-            pred = non_max_suppression(pred, opt.conf_thres, opt.iou_thres, opt.classes, opt.agnostic_nms, max_det=opt.max_det)
-            dt[2] += time_sync() - t3
+        # Apply NMS
+        pred = non_max_suppression(pred, opt.conf_thres, opt.iou_thres, opt.classes, opt.agnostic_nms, max_det=opt.max_det)
+        dt[2] += time_sync() - t3
 
-            # Process detections
-            if save_vid or show_vid:
-                for i, det in enumerate(pred):  # detections per image
-                    seen += 1
-                    if webcam:  # batch_size >= 1
-                        p, im0, _ = path[i], im0s[i].copy(), dataset.count
-                        s += f'{i}: '
-                    else:
-                        p, im0, _ = path, im0s.copy(), getattr(dataset, 'frame', 0)
+        # Process detections
+        if save_vid or show_vid:
+            for i, det in enumerate(pred):  # detections per image
+                seen += 1
+                if webcam:  # batch_size >= 1
+                    p, im0, _ = path[i], im0s[i].copy(), dataset.count
+                    s += f'{i}: '
+                else:
+                    p, im0, _ = path, im0s.copy(), getattr(dataset, 'frame', 0)
 
-                    p = Path(p)  # to Path
-                    save_path = str(save_dir / p.name)  # im.jpg, vid.mp4, ...
-                    s += '%gx%g ' % img.shape[2:]  # print string
+                p = Path(p)  # to Path
+                save_path = str(save_dir / p.name)  # im.jpg, vid.mp4, ...
+                s += '%gx%g ' % img.shape[2:]  # print string
 
-                    annotator = Annotator(im0, line_width=2, pil=not ascii)
-                    p_count = 0
-                    if det is not None and len(det):
-                        # Rescale boxes from img_size to im0 size
-                        det[:, :4] = scale_coords(
-                            img.shape[2:], det[:, :4], im0.shape).round()
+                annotator = Annotator(im0, line_width=2, pil=not ascii)
+                p_count = 0
+                if det is not None and len(det):
+                    # Rescale boxes from img_size to im0 size
+                    det[:, :4] = scale_coords(
+                        img.shape[2:], det[:, :4], im0.shape).round()
 
-                        # Print results
-                        for c in det[:, -1].unique():
-                            n = (det[:, -1] == c).sum()  # detections per class
-                            s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
-                            if int(c) == 0:
-                                p_count = n.item()
+                    # Print results
+                    for c in det[:, -1].unique():
+                        n = (det[:, -1] == c).sum()  # detections per class
+                        s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
+                        if int(c) == 0:
+                            p_count = n.item()
 
-                        xyxy = det[:, 0:4]
-                        confs = det[:, 4]
-                        clss = det[:, 5]
+                    xyxy = det[:, 0:4]
+                    confs = det[:, 4]
+                    clss = det[:, 5]
 
-                        # draw boxes for visualization
-                        if len(det) > 0:
-                            for j, (bbox, cls, conf) in enumerate(zip(xyxy.cpu(), clss.cpu(), confs.cpu())):
+                    # draw boxes for visualization
+                    if len(det) > 0:
+                        for j, (bbox, cls, conf) in enumerate(zip(xyxy.cpu(), clss.cpu(), confs.cpu())):
 
-                                c = int(cls)  # integer class
-                                label = f'{names[c]} {conf:.2f}'
-                                annotator.box_label(bbox, label, color=colors(c, True))
+                            c = int(cls)  # integer class
+                            label = f'{names[c]} {conf:.2f}'
+                            annotator.box_label(bbox, label, color=colors(c, True))
 
-                            if mask and p_count:
-                                annotator.text([0,0], f'{p_count} people in target region', color=colors(0, True))
+                        if mask and p_count:
+                            annotator.text([0,0], f'{p_count} people in target region', color=colors(0, True))
 
-                    output.append((path, s, p_count))
-                    # Print time (inference-only)
-                    LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
+                im0 = annotator.result()
+                # Stream results
+                if show_vid:
+                    cv2.imshow(p, im0)
+                    if cv2.waitKey(1) == ord('q'):  # q to quit
+                        raise StopIteration
 
-                    im0 = annotator.result()
-                    # Stream results
-                    if show_vid:
-                        cv2.imshow(p, im0)
-                        if cv2.waitKey(1) == ord('q'):  # q to quit
-                            raise StopIteration
+                # Save results (image with detections)
+                if save_vid:
+                    if vid_path != save_path:  # new video
+                        vid_path = save_path
+                        if isinstance(vid_writer, cv2.VideoWriter):
+                            vid_writer.release()  # release previous video writer
+                        if vid_cap:  # video
+                            fps = vid_cap.get(cv2.CAP_PROP_FPS)
+                            w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                            h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                        else:  # stream
+                            fps, w, h = 30, im0.shape[1], im0.shape[0]
+                            save_path += '.mp4'
 
-                    # Save results (image with detections)
-                    if save_vid:
-                        if vid_path != save_path:  # new video
-                            vid_path = save_path
-                            if isinstance(vid_writer, cv2.VideoWriter):
-                                vid_writer.release()  # release previous video writer
-                            if vid_cap:  # video
-                                fps = vid_cap.get(cv2.CAP_PROP_FPS)
-                                w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                                h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                            else:  # stream
-                                fps, w, h = 30, im0.shape[1], im0.shape[0]
-                                save_path += '.mp4'
+                        vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+                    vid_writer.write(im0)
+                
+                out.append((path, s, p_count))
 
-                            vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
-                        vid_writer.write(im0)
-            else:
-                for i, det in enumerate(pred):  # detections per image
-                    seen += 1
-                    p_count = 0
-                    if det is not None and len(det):
-                        for c in det[:, -1].unique():
-                            n = (det[:, -1] == c).sum()  # detections per class
-                            s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
-                            if int(c) == 0:
-                                p_count = n.item()
+                #Save counter
+                if vid_path != save_path:  # new video
+                    vid_path = save_path
+                    with open(save_path/'.txt', 'wb') as fp:
+                    output = out.copy()
+                    out = []
+                    
+            # Print time (inference-only)
+            output.extend(output)
+            LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
+                
+        else:
+            for i, det in enumerate(pred):  # detections per image
+                seen += 1
+                if webcam:  # batch_size >= 1
+                    p = path[i]
+                    s += f'{i}: '
+                else:
+                    p = path
 
-                    output.append((path, s, p_count))
-                    # Print time (inference-only)
-                    LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
+                p = Path(p)  # to Path
+                save_path = str(save_dir / p.name)  # im.jpg, vid.mp4, ...
+
+                p_count = 0
+                if det is not None and len(det):
+                    for c in det[:, -1].unique():
+                        n = (det[:, -1] == c).sum()  # detections per class
+                        s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
+                        if int(c) == 0:
+                            p_count = n.item()
+
+                out.append((path, s, p_count))
+                #Save counter
+                if vid_path != save_path:  # new video
+                    vid_path = save_path
+                    with open(save_path/'.txt', 'wb') as fp:
+                        pickle.dump(out, fp)
+                    output = out.copy()
+                    out = []
+
+            # Print time (inference-only)
+            output.extend(output)
+            LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
     # Save results
     import pickle
