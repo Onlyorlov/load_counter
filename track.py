@@ -186,7 +186,7 @@ def detect(opt):
                     
             # Print time (inference-only)
             output.extend(output)
-            LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
+            # LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
                 
         else:
             for i, det in enumerate(pred):  # detections per image
@@ -219,7 +219,7 @@ def detect(opt):
 
             # Print time (inference-only)
             output.extend(output)
-            LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
+        LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
     # Save results
     with open(save_dir/'output.txt', 'wb') as fp:
