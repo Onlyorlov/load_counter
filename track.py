@@ -123,14 +123,13 @@ def detect(opt):
                 s += '%gx%g ' % img.shape[2:]  # print string
 
                 annotator = Annotator(im0, line_width=2, pil=not ascii)
-
+                p_count = 0
                 if det is not None and len(det):
                     # Rescale boxes from img_size to im0 size
                     det[:, :4] = scale_coords(
                         img.shape[2:], det[:, :4], im0.shape).round()
 
                     # Print results
-                    p_count = 0
                     for c in det[:, -1].unique():
                         n = (det[:, -1] == c).sum()  # detections per class
                         s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
@@ -151,8 +150,8 @@ def detect(opt):
 
                         if mask and p_count:
                             annotator.text([0,0], f'{p_count} people in target region', color=colors(0, True))
-                    output.append((path, s, p_count.item()))
 
+                output.append((path, s, p_count.item()))
                 # Print time (inference-only)
                 LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
@@ -182,15 +181,15 @@ def detect(opt):
         else:
             for i, det in enumerate(pred):  # detections per image
                 seen += 1
+                p_count = 0
                 if det is not None and len(det):
-                    p_count = 0
                     for c in det[:, -1].unique():
                         n = (det[:, -1] == c).sum()  # detections per class
                         s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
                         if int(c) == 0:
                             p_count = n
 
-                    output.append((path, s, p_count.item()))
+                output.append((path, s, p_count.item()))
                 # Print time (inference-only)
                 LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
