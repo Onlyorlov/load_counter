@@ -150,6 +150,9 @@ def detect(opt):
                         if mask and p_count:
                             annotator.text([0,0], f'{p_count} people in target region', color=colors(0, True))
 
+                # Print time (inference-only)
+                LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
+
                 im0 = annotator.result()
                 # Stream results
                 if show_vid:
@@ -184,9 +187,8 @@ def detect(opt):
                     output = out.copy()
                     out = []
                     
-            # Print time (inference-only)
             output.extend(output)
-            # LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
+
                 
         else:
             for i, det in enumerate(pred):  # detections per image
@@ -207,6 +209,9 @@ def detect(opt):
                         s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
                         if int(c) == 0:
                             p_count = n.item()
+                
+                # Print time (inference-only)
+                LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
                 out.append((path, s, p_count))
                 #Save counter
@@ -217,9 +222,7 @@ def detect(opt):
                     output = out.copy()
                     out = []
 
-            # Print time (inference-only)
             output.extend(output)
-        LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
     # Save results
     with open(save_dir/'output.txt', 'wb') as fp:
