@@ -20,7 +20,7 @@ from pathlib import Path
 import cv2
 import torch
 import torch.backends.cudnn as cudnn
-import tqdm
+from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from yolov5.models.experimental import attempt_load
