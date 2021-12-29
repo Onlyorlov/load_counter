@@ -49,8 +49,7 @@ $ python track.py --source 0  # webcam
 ## ROI mask for counting people
 
 For counting objects in region of interest(ROI) you can submit list of coordinates of each corner of the ROI.
-Coordinates in pixels in original image shape.
-Default threshold - 70%(0.7 of bbox area should be inside of ROI).
+Coordinates in pixels of original image shape.
 
 <div align="center">
 <p>
