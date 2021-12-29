@@ -177,12 +177,11 @@ def detect(opt):
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                     vid_writer.write(im0)
                 
-                out.append((path, s, p_count))
-
+                out.append((path, s, p_count)) # save detections
                 #Save counter
-                if vid_path != save_path:  # new video
+                if vid_path != save_path:  # if new video
                     vid_path = save_path
-                    with open(save_path+'.txt', 'wb') as fp:
+                    with open(save_path+'.txt', 'wb') as fp: # save old video data/create initial file
                         pickle.dump(out, fp)
                     output.extend(out)
                     out = []
@@ -210,16 +209,22 @@ def detect(opt):
                 # Print time (inference-only)
                 LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
-                out.append((path, s, p_count))
+                out.append((path, s, p_count)) # save detections
                 #Save counter
-                if vid_path != save_path:  # new video
+                if vid_path != save_path:  # if new video
                     vid_path = save_path
-                    with open(save_path+'.txt', 'wb') as fp:
+                    with open(save_path+'.txt', 'wb') as fp: # save old video data/create initial file
                         pickle.dump(out, fp)
                     output.extend(out)
                     out = []
 
-    # Save results
+    #Last video 
+    with open(save_path+'.txt', 'wb') as fp:
+        pickle.dump(out, fp)
+    output.extend(out)
+    out = []
+
+    # Save total results
     with open(save_dir/'output.txt', 'wb') as fp:
         pickle.dump(output, fp)
 
