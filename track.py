@@ -151,7 +151,7 @@ def detect(opt):
 
                         if mask and p_count:
                             annotator.text([0,0], f'{p_count} people in target region', color=colors(0, True))
-                    output.append((path, frame_idx, p_count.item()))
+                    output.append((path, s, p_count.item()))
 
                 # Print time (inference-only)
                 LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
@@ -190,7 +190,7 @@ def detect(opt):
                         if int(c) == 0:
                             p_count = n
 
-                    output.append((path, frame_idx, p_count.item()))
+                    output.append((path, s, p_count.item()))
                 # Print time (inference-only)
                 LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
