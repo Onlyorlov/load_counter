@@ -58,7 +58,7 @@ Coordinates in pixels of original image shape.
 </div>
 
 ```bash
-$ python track.py --source 0  --mask '[[[484,412], [754,377], [1333,433], [1404,1017], [1404,1076], [122,1076],[419,804]]]'
+$ python track.py --source 0  --mask '[[[516,726],[484,412], [754,377], [1333,433], [1404,1023]]]'
 ```
 
 ## Decrease FPS
