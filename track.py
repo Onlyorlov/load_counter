@@ -108,8 +108,8 @@ def detect(opt):
         dt[2] += time_sync() - t3
 
         # Process detections
-        if save_vid or show_vid:
-            for i, det in enumerate(pred):  # detections per image
+        for i, det in enumerate(pred):  # detections per image
+            if save_vid or show_vid:
                 seen += 1
                 if webcam:  # batch_size >= 1
                     p, im0, _ = path[i], im0s[i].copy(), dataset.count
@@ -176,19 +176,8 @@ def detect(opt):
 
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                     vid_writer.write(im0)
-                
-                out.append((path, s, p_count)) # save detections
-                #Save counter
-                if vid_path != save_path:  # if new video
-                    LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
-                    vid_path = save_path
-                    with open(save_path+'.txt', 'wb') as fp: # save old video data/create initial file
-                        pickle.dump(out, fp)
-                    output.extend(out)
-                    out = []
    
-        else:
-            for i, det in enumerate(pred):  # detections per image
+            else:
                 seen += 1
                 if webcam:  # batch_size >= 1
                     p = path[i]
@@ -210,15 +199,15 @@ def detect(opt):
                 # Print time (inference-only)
                 # LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
 
-                out.append((path, s, p_count)) # save detections
-                #Save counter
-                if vid_path != save_path:  # if new video
-                    LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
-                    vid_path = save_path
-                    with open(save_path+'.txt', 'wb') as fp: # save old video data/create initial file
-                        pickle.dump(out, fp)
-                    output.extend(out)
-                    out = []
+            out.append((path, s, p_count)) # save detections
+            #Save counter
+            if vid_path != save_path:  # if new video
+                LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s)')
+                vid_path = save_path
+                with open(save_path+'.txt', 'wb') as fp: # save old video data/create initial file
+                    pickle.dump(out, fp)
+                output.extend(out)
+                out = []
 
     #Last video 
     with open(save_path+'.txt', 'wb') as fp:
