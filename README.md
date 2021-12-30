@@ -61,10 +61,18 @@ Coordinates in pixels of original image shape.
 $ python track.py --source 0  --mask '[[[484,412], [754,377], [1333,433], [1404,1017], [1404,1076], [122,1076],[419,804]]]'
 ```
 
+## Decrease FPS
+
+By default frame rate will be decreased to 1 fps for increased performance.
+If you want to process all frames of a video pass 0 or choose another coef to decrease fps.
+
+```bash
+python3 track.py --coef 1   # 1 fps
+                        0   # without changes
+                        int # step = original_fps/int
+```
 
 ## Select object detection model
-
-### Yolov5
 
 There is a clear trade-off between model inference speed and accuracy. In order to make it possible to fulfill your inference speed/accuracy needs
 you can select a Yolov5 family model for automatic download
