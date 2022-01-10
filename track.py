@@ -252,7 +252,7 @@ if __name__ == '__main__':
     parser.add_argument('--project', default=ROOT / 'runs', help='save results to project/name')
     parser.add_argument('--name', default='exp', help='save results to project/name')
     parser.add_argument('--mask', type=json.loads, default=None, help='all outer corners of the region of interest(ROI)')
-    parser.add_argument('--coef', type=int, default=None, help='desired coef to decrease fps')
+    parser.add_argument('--coef', type=int, default=1, help='desired coef to decrease fps')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     opt = parser.parse_args()
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
